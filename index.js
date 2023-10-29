@@ -28,7 +28,7 @@ async function run() {
     const serviceCollection = client.db('doctorsOfCars').collection('services');
     const bookingCollection = client.db('doctorsOfCars').collection('bookings')
 
-    app.get('/services', async(req, res) =>{
+    app.get('/services', async(req, res) => {
       const cursor = serviceCollection.find();
       const result = await cursor.toArray();
       res.send(result)
@@ -39,16 +39,33 @@ async function run() {
       const query = {_id: new ObjectId(id) }
       //  Copy Options from mongodb collections docs
       const options = {
-          projection: { title: 1, price: 1, service_id: 1 },
+          projection: { title: 1, price: 1, service_id: 1, img: 1 },
       }
       const result = await serviceCollection.findOne(query, options);
       res.send(result);
     })
-
-//  Booking
-    app.post('/bookings', async (req, res) ={
-      const booking = req.body;
+    // Booking
+    // 2 Get Specific data
+    app.get ('/bookings', async (req, res) =>{
+      console.log(req.query.email);
+      let query = {};
+      if(req.query?.email){
+        query = { email: req.query.email}
+      }
+      const cursor = bookingCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
     })
+
+
+    // 1
+    app.post('/bookings', async (req, res) =>{
+      const booking = req.body;
+      console.log(booking)
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -59,8 +76,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
-
 
 app.get('/', (req, res) =>{
     res.send('Doctors of Cars server is Running')
